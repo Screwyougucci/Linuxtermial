@@ -9,6 +9,8 @@ export default function Home() {
  const [status,setStatus]=useState("ON DEMAND");
  const input=useRef<HTMLInputElement>(null);
  const output=useRef<HTMLDivElement>(null);
+ const history=useRef<string[]>([]);
+ const historyIndex=useRef(-1);
  useEffect(()=>{output.current?.scrollTo({top:output.current.scrollHeight,behavior:"smooth"});},[entries]);
  async function run(raw:string) {
   const value=raw.trim(); if(!value||busy)return;
