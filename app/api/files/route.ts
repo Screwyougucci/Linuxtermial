@@ -81,7 +81,6 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  if (!originOk(request)) return NextResponse.json({ error: "Same-origin request required." }, { status: 403 });
   const name = request.nextUrl.searchParams.get("name") || "";
   if (!safeName(name)) return NextResponse.json({ error: "Invalid filename." }, { status: 400 });
   const { id } = await session();
