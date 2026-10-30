@@ -51,7 +51,8 @@ export default function Home() {
    setFileStatus("Downloaded "+name);
   } catch(e){setFileStatus(e instanceof Error?e.message:"Download failed");}
  }
-\n function submit(e:FormEvent){e.preventDefault();void run(command);}
+
+ function submit(e:FormEvent){e.preventDefault();void run(command);}
  function handleInputKey(e:React.KeyboardEvent<HTMLInputElement>){
   if(e.key==="ArrowUp"){e.preventDefault();const next=historyIndex.current<0?history.current.length-1:Math.max(0,historyIndex.current-1);historyIndex.current=next;setCommand(history.current[next]||"");}
   if(e.key==="ArrowDown"){e.preventDefault();const next=historyIndex.current+1;if(next>=history.current.length){historyIndex.current=-1;setCommand("");}else{historyIndex.current=next;setCommand(history.current[next]||"");}}
