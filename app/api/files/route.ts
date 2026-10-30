@@ -8,7 +8,7 @@ export const maxDuration = 60;
 const COOKIE = "linuxtermial_session";
 const MAX_AGE = 60 * 60 * 24 * 30;
 const WORKSPACE = "/vercel/sandbox";
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
 
 function signature(id: string) {
   const key = process.env.TERMINAL_SESSION_SECRET;
@@ -64,13 +64,17 @@ function originOk(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   if (!originOk(request)) return NextResponse.json({ error: "Same-origin request required." }, { status: 403 });
+  const contentLength = Number(request.headers.get("content-length") || "0");
+  if (contentLength > MAX_FILE_SIZE + 64 * 1024) {
+    return NextResponse.json({ error: "Maximum upload size is 4 MB." }, { status: 413 });
+  }
   const { id, isNew } = await session();
   try {
     const form = await request.formData();
     const file = form.get("file");
     if (!(file instanceof File)) return NextResponse.json({ error: "Choose a file to upload." }, { status: 400 });
     if (!safeName(file.name)) return NextResponse.json({ error: "Use a simple filename (letters, numbers, dot, dash, underscore)." }, { status: 400 });
-    if (file.size > MAX_FILE_SIZE) return NextResponse.json({ error: "Maximum upload size is 10 MB." }, { status: 413 });
+    if (file.size > MAX_FILE_SIZE) return NextResponse.json({ error: "Maximum upload size is 4 MB." }, { status: 413 });
     const sandbox = await getSandbox(id);
     await sandbox.writeFiles([{ path: WORKSPACE + "/" + file.name, content: Buffer.from(await file.arrayBuffer()) }]);
     return setCookie(NextResponse.json({ ok: true, name: file.name, size: file.size }), id, isNew);
@@ -83,7 +87,9 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const name = request.nextUrl.searchParams.get("name") || "";
   if (!safeName(name)) return NextResponse.json({ error: "Invalid filename." }, { status: 400 });
-  const { id } = await session();
+  const jar = await cookies();
+  const id = readSession(jar.get(COOKIE)?.value);
+  if (!id) return NextResponse.json({ error: "No active sandbox session." }, { status: 401 });
   try {
     const sandbox = await getSandbox(id);
     const buffer = await sandbox.readFileToBuffer({ path: WORKSPACE + "/" + name });
