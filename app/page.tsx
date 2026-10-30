@@ -14,6 +14,7 @@ export default function Home() {
   const value=raw.trim(); if(!value||busy)return;
   if(value==="clear"){setEntries([]);setCommand("");return;}
   if(value==="help"){setEntries(old=>[...old,{id:Date.now(),command:value,code:0,output:"Available commands:\nhelp, clear, pwd, whoami, id, uname -a, ls -la, date, df -h, free -h, python3 --version, node --version\n\nThis first release uses a restricted command allowlist. Network access is disabled."}]);setCommand("");return;}
+  history.current=[...history.current.filter(x=>x!==value),value].slice(-100);historyIndex.current=-1;
   setBusy(true);setCommand("");
   const id=Date.now();setEntries(old=>[...old,{id,command:value,output:"Running in isolated sandbox…",code:null}]);
   try{
@@ -25,6 +26,11 @@ export default function Home() {
   finally{setBusy(false);input.current?.focus();}
  }
  function submit(e:FormEvent){e.preventDefault();void run(command);}
+ function handleInputKey(e:React.KeyboardEvent<HTMLInputElement>){
+  if(e.key==="ArrowUp"){e.preventDefault();const next=historyIndex.current<0?history.current.length-1:Math.max(0,historyIndex.current-1);historyIndex.current=next;setCommand(history.current[next]||"");}
+  if(e.key==="ArrowDown"){e.preventDefault();const next=historyIndex.current+1;if(next>=history.current.length){historyIndex.current=-1;setCommand("");}else{historyIndex.current=next;setCommand(history.current[next]||"");}}
+  if(e.key==="l"&&e.ctrlKey){e.preventDefault();setEntries([]);}
+ }
  return <main className="shell">
   <header className="topbar"><a className="brand" href="/"> <span className="mark">▣</span> LINUX<span>TERMIAL</span></a><div className="private">● PRIVATE LAB <small>BUILD 0.1.0</small></div></header>
   <div className="layout"><aside className="sidebar"><div className="label">WORKSPACE</div><div className="nav active">⌘ &nbsp; Terminal</div><div className="nav muted">▤ &nbsp; Files <small>SOON</small></div><div className="nav muted">◇ &nbsp; Security tools <small>SOON</small></div><hr/><div className="label">ENVIRONMENT</div><div className="env"><b>⌁ &nbsp; Linux Sandbox</b><small>Ubuntu · isolated microVM</small></div><p className="status">● {status}</p><div className="bottom"><div className="label">SAFETY MODE</div><div className="env"><b>◎ &nbsp; Network isolated</b><small>Outbound traffic blocked</small></div><p>Only test systems you own or have permission to assess.</p></div></aside>
@@ -37,8 +43,8 @@ export default function Home() {
 |_____|___|_| \_|_|\_\|_|\_\___|_|  |_|___/_/   \_\_____|`}</pre><p>Welcome to your private Linux workspace.</p><p>Real commands execute in an isolated Vercel Sandbox.</p><p>Network access is disabled by default.</p><p>Try <code>help</code> to see available commands.</p></div>}
   {entries.map(e=><div className="entry" key={e.id}><div><b>ubuntu@linuxtermial</b><span>:/workspace$ </span>{e.command}</div><pre className={e.code===1?"error":""}>{e.output}</pre>{e.code!==null&&<small>EXIT CODE: {e.code}</small>}</div>)}
   {busy&&<div className="running">● RUNNING IN ISOLATED SANDBOX…</div>}</div>
-  <form className="inputbar" onSubmit={submit}><strong>❯</strong><input ref={input} value={command} onChange={e=>setCommand(e.target.value)} placeholder="Enter a Linux command…" disabled={busy} autoComplete="off" spellCheck={false}/><button disabled={busy||!command.trim()}>RUN ↗</button></form></div>
-  <div className="quick"><span>QUICK COMMANDS</span>{["whoami","pwd","uname -a","ls -la","python3 --version"].map(x=><button key={x} disabled={busy} onClick={()=>void run(x)}>{x}</button>)}</div>
+  <form className="inputbar" onSubmit={submit}><strong>❯</strong><input ref={input} value={command} onChange={e=>setCommand(e.target.value)} onKeyDown={handleInputKey} placeholder="Enter a Linux command…" disabled={busy} autoComplete="off" spellCheck={false}/><button disabled={busy||!command.trim()}>RUN ↗</button></form></div>
+  <div className="quick"><span>QUICK COMMANDS</span>{["whoami","pwd","uname -a","ls -la","python3 --version","git --version"].map(x=><button key={x} disabled={busy} onClick={()=>void run(x)}>{x}</button>)}</div>
   <div className="notice">ⓘ &nbsp; <span><b>Sandbox boundary:</b> Commands run in an isolated microVM, not on the Vercel application server. Network access is disabled in this release.</span></div>
   <footer><span>LINUXTERMIAL · PRIVATE SECURITY WORKSPACE</span><span>POWERED BY VERCEL SANDBOX</span></footer></section></div>
  </main>;
