@@ -36,7 +36,7 @@ async function sandboxFor(id: string) {
       timeout: 45 * 60 * 1000,
       persistent: true,
       resources: { vcpus: 1 },
-      networkPolicy: "deny-all"
+      networkPolicy: "allow-all"
     });
   }
 }
@@ -65,6 +65,25 @@ function parseAllowed(input: string): { cmd: string; args: string[] } | null {
       const valid = args.every((arg) => fixedArgs.ls.includes(arg) || safeWorkspacePath(arg));
       if (valid && (!args.some((arg) => fixedArgs.ls.includes(arg)) || args.filter((arg) => safeWorkspacePath(arg)).length <= 1)) return { cmd, args };
     } else if (args.length === 1 && fixedArgs[cmd].includes(args[0])) return { cmd, args };
+  }
+
+  // HTTPS-only network probes/downloads. No shell is invoked and URL arguments
+  // are passed directly to the executable.
+  if (cmd === "curl" && args.length === 2 && ["-I", "-L"].includes(args[0])) {
+    try {
+      const url = new URL(args[1]);
+      if (url.protocol === "https:" && !url.username && !url.password && !/^(localhost|127\\.|10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.|169\\.254\\.)/i.test(url.hostname)) {
+        return { cmd, args: ["--max-time", "15", args[0], url.toString()] };
+      }
+    } catch {}
+  }
+  if (cmd === "wget" && args.length === 1) {
+    try {
+      const url = new URL(args[0]);
+      if (url.protocol === "https:" && !url.username && !url.password && !/^(localhost|127\\.|10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.|169\\.254\\.)/i.test(url.hostname)) {
+        return { cmd, args: ["--timeout=15", "--", url.toString()] };
+      }
+    } catch {}
   }
   if (["cat", "touch", "mkdir", "head", "tail", "wc"].includes(cmd) && args.length === 1 && safeWorkspacePath(args[0])) {
     return { cmd, args };
