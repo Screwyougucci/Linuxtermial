@@ -87,6 +87,7 @@ export async function GET(request: NextRequest) {
   try {
     const sandbox = await getSandbox(id);
     const buffer = await sandbox.readFileToBuffer({ path: WORKSPACE + "/" + name });
+    if (!buffer) return NextResponse.json({ error: "File not found." }, { status: 404 });
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
