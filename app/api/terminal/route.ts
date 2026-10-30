@@ -75,7 +75,7 @@ function parseAllowed(input: string): { cmd: string; args: string[] } | null {
   if (cmd === "curl" && args.length === 2 && ["-I", "-L"].includes(args[0])) {
     try {
       const url = new URL(args[1]);
-      if (url.protocol === "https:" && !url.username && !url.password && !/^(localhost|127\\.|10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.|169\\.254\\.)/i.test(url.hostname)) {
+      if (url.protocol === "https:" && !url.username && !url.password && !/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.)/i.test(url.hostname)) {
         return { cmd, args: ["--max-time", "15", args[0], url.toString()] };
       }
     } catch {}
@@ -83,7 +83,7 @@ function parseAllowed(input: string): { cmd: string; args: string[] } | null {
   if (cmd === "wget" && args.length === 1) {
     try {
       const url = new URL(args[0]);
-      if (url.protocol === "https:" && !url.username && !url.password && !/^(localhost|127\\.|10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.|169\\.254\\.)/i.test(url.hostname)) {
+      if (url.protocol === "https:" && !url.username && !url.password && !/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.)/i.test(url.hostname)) {
         return { cmd, args: ["--timeout=15", "--", url.toString()] };
       }
     } catch {}
