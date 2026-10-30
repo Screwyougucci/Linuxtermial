@@ -17,7 +17,7 @@ export default function Home() {
  async function run(raw:string) {
   const value=raw.trim(); if(!value||busy)return;
   if(value==="clear"){setEntries([]);setCommand("");return;}
-  if(value==="help"){setEntries(old=>[...old,{id:Date.now(),command:value,code:0,output:"Available commands:\nhelp, clear, pwd, whoami, id, uname -a, ls -la, date, df -h, free -h, python3 --version, node --version\n\nThis first release uses a restricted command allowlist. Network access is disabled."}]);setCommand("");return;}
+  if(value==="help"){setEntries(old=>[...old,{id:Date.now(),command:value,code:0,output:"Available commands:\nhelp, clear, pwd, whoami, id, uname -a, ls -la, date, df -h, free -h, python3 --version, node --version, git --version\ncurl -I https://example.com\ncurl -L https://example.com\nwget https://example.com/robots.txt\n\nHTTPS outbound networking is enabled in your isolated sandbox. File upload and download are available above."}]);setCommand("");return;}
   history.current=[...history.current.filter(x=>x!==value),value].slice(-100);historyIndex.current=-1;
   setBusy(true);setCommand("");
   const id=Date.now();setEntries(old=>[...old,{id,command:value,output:"Running in isolated sandbox…",code:null}]);
