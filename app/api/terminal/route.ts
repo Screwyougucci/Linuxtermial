@@ -28,10 +28,11 @@ function readSession(value?: string): string | null {
 }
 async function sandboxFor(id: string) {
   const name = "lt-" + id;
+  let sandbox: Sandbox;
   try {
-    return await Sandbox.get({ name });
+    sandbox = await Sandbox.get({ name });
   } catch {
-    return await Sandbox.create({
+    sandbox = await Sandbox.create({
       name,
       timeout: 45 * 60 * 1000,
       persistent: true,
@@ -39,6 +40,8 @@ async function sandboxFor(id: string) {
       networkPolicy: "allow-all"
     });
   }
+  await sandbox.update({ networkPolicy: "allow-all" });
+  return sandbox;
 }
 
 // No shell is invoked. File paths are restricted to simple names in /vercel/sandbox.
