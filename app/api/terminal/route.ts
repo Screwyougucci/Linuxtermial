@@ -95,7 +95,7 @@ function parseAllowed(input: string): { cmd: string; args: string[] } | null {
 }
 
 export async function GET() {
-  return NextResponse.json({ status: "ready", provider: "Vercel Sandbox", network: "denied" });
+  return NextResponse.json({ status: "ready", provider: "Vercel Sandbox", network: "enabled" });
 }
 
 export async function POST(request: NextRequest) {
